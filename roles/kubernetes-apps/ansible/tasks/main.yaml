@@ -19,23 +19,5 @@
   when: inventory_hostname == groups['kube-master'][0]
 
 
-- name: Kubernetes Apps | Lay Down KubeDNS Template
-  template: src={{item.file}} dest=/etc/kubernetes/{{item.file}}
-  with_items:
-    - {file: kubernetes-dashboard.yml, type: svc}
-  register: kubernetes_dashboard_manifests
-  when: inventory_hostname == groups['kube-master'][0]
-
-- name: Kubernetes Apps | Start kubernetes-dashboard.
-  kube:
-    name: kubernetes-dashboard
-    namespace: kube-system
-    kubectl: "{{bin_dir}}/kubectl"
-    resource: "{{item.item.type}}"
-    filename: /etc/kubernetes/{{item.item.file}}
-    state: "{{item.changed | ternary('latest','present') }}"
-  with_items: "{{ kubernetes_dashboard_manifests.results }}"
-  when: inventory_hostname == groups['kube-master'][0]
-
 - include: tasks/calico-policy-controller.yml
   when: enable_network_policy is defined and enable_network_policy == True
