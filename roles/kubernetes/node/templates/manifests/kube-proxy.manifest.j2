@@ -14,7 +14,6 @@ spec:
     - --v={{ kube_log_level | default('2') }}
     - --master={{ kube_apiserver_endpoint }}
     - --kubeconfig=/etc/kubernetes/node-kubeconfig.yaml
-    - --bind-address={{ ip | default(ansible_default_ipv4.address) }}
     - --cluster-cidr={{ kube_pods_subnet }}
     - --proxy-mode={{ kube_proxy_mode }}
 {% if kube_proxy_masquerade_all and kube_proxy_mode == "iptables" %}
