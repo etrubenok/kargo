@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: dnsmasq
-          image: andyshinn/dnsmasq:2.72
+          image: andyshinn/dnsmasq:2.76
           command:
             - dnsmasq
           args:
