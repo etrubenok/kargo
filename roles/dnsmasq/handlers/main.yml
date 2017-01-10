@@ -3,7 +3,7 @@
   notify:
     - Dnsmasq | reload network
     - Dnsmasq | update resolvconf
-  when: ansible_os_family != "CoreOS"
+  when: ansible_os_family != "CoreOS" and ansible_os_family != "Container Linux by CoreOS"
 
 - name: Dnsmasq | reload network
   service:
@@ -14,7 +14,7 @@
       networking
       {%- endif %}
     state: restarted
-  when: ansible_os_family != "RedHat" and ansible_os_family != "CoreOS"
+  when: ansible_os_family != "RedHat" and ansible_os_family != "CoreOS" and ansible_os_family != "Container Linux by CoreOS"
 
 - name: Dnsmasq | update resolvconf
   command: /bin/true

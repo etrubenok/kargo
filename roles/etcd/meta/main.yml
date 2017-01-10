@@ -2,8 +2,8 @@
 dependencies:
   - role: adduser
     user: "{{ addusers.etcd }}"
-    when: ansible_os_family != 'CoreOS'
+    when: ansible_os_family != 'CoreOS' and ansible_os_family != "Container Linux by CoreOS"
   - role: docker
-    when: (ansible_os_family != "CoreOS" and etcd_deployment_type == "docker" or inventory_hostname in groups['k8s-cluster'])
+    when: (ansible_os_family != "CoreOS" and ansible_os_family != "Container Linux by CoreOS" and etcd_deployment_type == "docker" or inventory_hostname in groups['k8s-cluster'])
   - role: download
     file: "{{ downloads.etcd }}"

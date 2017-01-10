@@ -19,7 +19,7 @@
           docker requires a minimum kernel version of
           {{ docker_kernel_min_version }} on
           {{ ansible_distribution }}-{{ ansible_distribution_version }}
-  when: (ansible_os_family != "CoreOS") and (ansible_kernel|version_compare(docker_kernel_min_version, "<"))
+  when: (ansible_os_family != "CoreOS" and ansible_os_family != "Container Linux by CoreOS") and (ansible_kernel|version_compare(docker_kernel_min_version, "<"))
 
 - name: ensure docker repository public key is installed
   action: "{{ docker_repo_key_info.pkg_key }}"
@@ -32,7 +32,7 @@
   retries: 4
   delay: "{{ retry_stagger | random + 3 }}"
   with_items: "{{ docker_repo_key_info.repo_keys }}"
-  when: ansible_os_family != "CoreOS"
+  when: ansible_os_family != "CoreOS" and ansible_os_family != "Container Linux by CoreOS"
 
 - name: ensure docker repository is enabled
   action: "{{ docker_repo_info.pkg_repo }}"
@@ -40,13 +40,13 @@
     repo: "{{item}}"
     state: present
   with_items: "{{ docker_repo_info.repos }}"
-  when: (ansible_os_family != "CoreOS") and (docker_repo_info.repos|length > 0)
+  when: (ansible_os_family != "CoreOS" and ansible_os_family != "Container Linux by CoreOS") and (docker_repo_info.repos|length > 0)
 
 - name: Configure docker repository on RedHat/CentOS
   copy:
     src: "rh_docker.repo"
     dest: "/etc/yum.repos.d/docker.repo"
-  when: ansible_distribution in ["CentOS","RedHat"] and
+  when: ansible_distribution in ["CentOS","Container Linux by CoreOS","RedHat"] and
         ansible_distribution_major_version >= 7
 
 - name: ensure docker packages are installed
@@ -60,7 +60,7 @@
   retries: 4
   delay: "{{ retry_stagger | random + 3 }}"
   with_items: "{{ docker_package_info.pkgs }}"
-  when: (ansible_os_family != "CoreOS") and (docker_package_info.pkgs|length > 0)
+  when: (ansible_os_family != "CoreOS" and ansible_os_family != "Container Linux by CoreOS") and (docker_package_info.pkgs|length > 0)
 
 - name: allow for proxies on systems using systemd
   include: systemd-proxies.yml
@@ -73,7 +73,7 @@
     dest: /etc/systemd/system/docker.service
   register: docker_service_file
   notify: restart docker
-  when: ansible_service_mgr == "systemd" and ansible_os_family != "CoreOS"
+  when: ansible_service_mgr == "systemd" and ansible_os_family != "CoreOS" and ansible_os_family != "Container Linux by CoreOS"
 
 - meta: flush_handlers
 

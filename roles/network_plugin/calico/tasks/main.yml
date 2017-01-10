@@ -8,7 +8,7 @@
     mode: 0644
   notify:
     - restart docker
-  when: ansible_os_family != "CoreOS"
+  when: ansible_os_family != "CoreOS" and ansible_os_family != "Container Linux by CoreOS"
 
 - meta: flush_handlers
 
