@@ -3,13 +3,19 @@
   command: /bin/true
   notify:
     - Docker | reload systemd
+    - Docker | reload docker.socket
     - Docker | reload docker
     - Docker | pause while Docker restarts
     - Docker | wait for docker
 
 - name : Docker | reload systemd
   shell: systemctl daemon-reload
-  when: ansible_service_mgr == "systemd"
+
+- name: Docker | reload docker.socket
+  service:
+    name: docker.socket
+    state: restarted
+  when: ansible_os_family in ['CoreOS', 'Container Linux by CoreOS']
 
 - name: Docker | reload docker
   service:
@@ -17,10 +23,12 @@
     state: restarted
 
 - name: Docker | pause while Docker restarts
-  pause: seconds=10 prompt="Waiting for docker restart"
+  pause:
+    seconds: 10
+    prompt: "Waiting for docker restart"
 
 - name: Docker | wait for docker
-  command: /usr/bin/docker images
+  command: "{{ docker_bin_dir }}/docker images"
   register: docker_ready
   retries: 10
   delay: 5

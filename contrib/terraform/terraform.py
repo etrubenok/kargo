@@ -309,6 +309,7 @@ def openstack_host(resource, module_name):
     attrs = {
         'access_ip_v4': raw_attrs['access_ip_v4'],
         'access_ip_v6': raw_attrs['access_ip_v6'],
+        'ip': raw_attrs['network.0.fixed_ip_v4'],
         'flavor': parse_dict(raw_attrs, 'flavor',
                              sep='_'),
         'id': raw_attrs['id'],
@@ -345,6 +346,15 @@ def openstack_host(resource, module_name):
     # attrs specific to Ansible
     if 'metadata.ssh_user' in raw_attrs:
         attrs['ansible_ssh_user'] = raw_attrs['metadata.ssh_user']
+
+    if 'volume.#' in raw_attrs.keys() and int(raw_attrs['volume.#']) > 0:
+        device_index = 1
+        for key, value in raw_attrs.items():
+            match = re.search("^volume.*.device$", key)
+            if match:
+                attrs['disk_volume_device_'+str(device_index)] = value
+                device_index += 1
+
 
     # attrs specific to Mantl
     attrs.update({

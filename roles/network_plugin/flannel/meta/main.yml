@@ -1,6 +1,5 @@
 ---
 dependencies:
   - role: download
-    file: "{{ downloads.flannel_server_helper }}"
-  - role: download
     file: "{{ downloads.flannel }}"
+    tags: download
