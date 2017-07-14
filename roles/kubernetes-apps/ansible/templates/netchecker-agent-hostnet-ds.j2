@@ -2,16 +2,20 @@ apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
   labels:
-    app: netchecker-agent
-  name: netchecker-agent
+    app: netchecker-agent-hostnet
+  name: netchecker-agent-hostnet
   namespace: {{ netcheck_namespace }}
 spec:
   template:
     metadata:
-      name: netchecker-agent
+      name: netchecker-agent-hostnet
       labels:
-        app: netchecker-agent
+        app: netchecker-agent-hostnet
     spec:
+      hostNetwork: True
+{% if kube_version | version_compare('v1.6', '>=') %}
+      dnsPolicy: ClusterFirstWithHostNet
+{% endif %}
       containers:
         - name: netchecker-agent
           image: "{{ agent_img }}"
@@ -20,6 +24,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           args:
             - "-v=5"
             - "-alsologtostderr=true"

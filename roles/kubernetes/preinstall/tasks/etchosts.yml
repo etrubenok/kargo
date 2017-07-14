@@ -9,6 +9,7 @@
     create: yes
     backup: yes
     marker: "# Ansible inventory hosts {mark}"
+  when: populate_inventory_to_hosts_file
 
 - name: Hosts | populate kubernetes loadbalancer address into hosts file
   lineinfile:
@@ -17,7 +18,10 @@
     line: "{{ loadbalancer_apiserver.address }} {{ apiserver_loadbalancer_domain_name| default('lb-apiserver.kubernetes.local') }}"
     state: present
     backup: yes
-  when: loadbalancer_apiserver is defined and loadbalancer_apiserver.address is defined and apiserver_loadbalancer_domain_name is defined
+  when:
+    - loadbalancer_apiserver is defined
+    - loadbalancer_apiserver.address is defined
+    - apiserver_loadbalancer_domain_name is defined
 
 - name: Hosts | localhost ipv4 in hosts file
   lineinfile:

@@ -56,7 +56,7 @@
   retries: 4
   delay: "{{ retry_stagger | random + 3 }}"
   changed_when: false
-  when: "{{ overwrite_hyperkube_cni|bool }}"
+  when: overwrite_hyperkube_cni|bool
   tags: [hyperkube, upgrade]
 
 - name: Calico | Set cni directory permissions
@@ -94,7 +94,7 @@
   shell: >
     echo '{
     "kind": "ipPool",
-    "spec": {"disabled": false, "ipip": {"enabled": {{ cloud_provider is defined or ipip }}},
+    "spec": {"disabled": false, "ipip": {"enabled": {{ ipip }}, "mode": "{{ ipip_mode }}"},
              "nat-outgoing": {{ nat_outgoing|default(false) and not peer_with_router|default(false) }}},
     "apiVersion": "v1",
     "metadata": {"cidr": "{{ kube_pods_subnet }}"}
@@ -110,8 +110,7 @@
   run_once: true
   set_fact:
     ipip_arg: "--ipip"
-  when: (legacy_calicoctl and
-         cloud_provider is defined or ipip)
+  when: (legacy_calicoctl and ipip )
   tags: facts
 
 - name: Calico (old) | Define nat-outgoing pool argument
@@ -219,7 +218,7 @@
    "apiVersion": "v1",
    "metadata": {"node": "{{ inventory_hostname }}", "scope": "node", "peerIP": "{{ item.router_id }}"}
    }'
-   | {{ bin_dir }}/calicoctl create -f -
+   | {{ bin_dir }}/calicoctl create --skip-exists -f -
   with_items: "{{ peers|default([]) }}"
   when: (not legacy_calicoctl and
          peer_with_router|default(false) and inventory_hostname in groups['k8s-cluster'])

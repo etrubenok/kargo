@@ -1,4 +1,4 @@
-Configurable Parameters in Kargo
+Configurable Parameters in Kubespray
 ================================
 
 #### Generic Ansible variables
@@ -12,7 +12,7 @@ Some variables of note include:
 * *ansible_default_ipv4.address*: IP address Ansible automatically chooses.
   Generated based on the output from the command ``ip -4 route get 8.8.8.8``
 
-#### Common vars that are used in Kargo
+#### Common vars that are used in Kubespray
 
 * *calico_version* - Specify version of Calico to use
 * *calico_cni_version* - Specify version of Calico CNI plugin to use
@@ -35,16 +35,16 @@ Some variables of note include:
 * *access_ip* - IP for other hosts to use to connect to. Often required when
   deploying from a cloud, such as OpenStack or GCE and you have separate
   public/floating and private IPs.
-* *ansible_default_ipv4.address* - Not Kargo-specific, but it is used if ip
+* *ansible_default_ipv4.address* - Not Kubespray-specific, but it is used if ip
   and access_ip are undefined
 * *loadbalancer_apiserver* - If defined, all hosts will connect to this
   address instead of localhost for kube-masters and kube-master[0] for
   kube-nodes. See more details in the
-  [HA guide](https://github.com/kubernetes-incubator/kargo/blob/master/docs/ha-mode.md).
+  [HA guide](https://github.com/kubernetes-incubator/kubespray/blob/master/docs/ha-mode.md).
 * *loadbalancer_apiserver_localhost* - makes all hosts to connect to
   the apiserver internally load balanced endpoint. Mutual exclusive to the
   `loadbalancer_apiserver`. See more details in the
-  [HA guide](https://github.com/kubernetes-incubator/kargo/blob/master/docs/ha-mode.md).
+  [HA guide](https://github.com/kubernetes-incubator/kubespray/blob/master/docs/ha-mode.md).
 
 #### Cluster variables
 
@@ -79,13 +79,13 @@ other settings from your existing /etc/resolv.conf are lost. Set the following
 variables to match your requirements.
 
 * *upstream_dns_servers* - Array of upstream DNS servers configured on host in
-  addition to Kargo deployed DNS
+  addition to Kubespray deployed DNS
 * *nameservers* - Array of DNS servers configured for use in dnsmasq
 * *searchdomains* - Array of up to 4 search domains
 * *skip_dnsmasq* - Don't set up dnsmasq (use only KubeDNS)
 
 For more information, see [DNS
-Stack](https://github.com/kubernetes-incubator/kargo/blob/master/docs/dns-stack.md).
+Stack](https://github.com/kubernetes-incubator/kubespray/blob/master/docs/dns-stack.md).
 
 #### Other service variables
 
@@ -98,7 +98,21 @@ Stack](https://github.com/kubernetes-incubator/kargo/blob/master/docs/dns-stack.
   loaded by preinstall kubernetes processes.  For example, ceph and rbd backed volumes.  Set this variable to
   true to let kubelet load kernel modules.
 
+##### Custom flags for Kube Components
+For all kube components, custom flags can be passed in. This allows for edge cases where users need changes to the default deployment that may not be applicable to all deployments. This can be done by providing a list of flags. Example:
+```
+kubelet_custom_flags:
+  - "--eviction-hard=memory.available<100Mi"
+  - "--eviction-soft-grace-period=memory.available=30s"
+  - "--eviction-soft=memory.available<300Mi"
+```
+The possible vars are:
+* *apiserver_custom_flags*
+* *controller_mgr_custom_flags*
+* *scheduler_custom_flags*
+* *kubelet_custom_flags*
+
 #### User accounts
 
-Kargo sets up two Kubernetes accounts by default: ``root`` and ``kube``. Their
+Kubespray sets up two Kubernetes accounts by default: ``root`` and ``kube``. Their
 passwords default to changeme. You can set this by changing ``kube_api_pwd``.

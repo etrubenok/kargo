@@ -20,6 +20,7 @@ ExecStartPre=-/bin/mkdir -p /var/lib/kubelet
 EnvironmentFile={{kube_config_dir}}/kubelet.env
 # stage1-fly mounts /proc /sys /dev so no need to duplicate the mounts
 ExecStart=/usr/bin/rkt run \
+        --volume os-release,kind=host,source=/etc/os-release,readOnly=true \
         --volume dns,kind=host,source=/etc/resolv.conf \
         --volume etc-kubernetes,kind=host,source={{ kube_config_dir }},readOnly=false \
         --volume etc-ssl-certs,kind=host,source=/etc/ssl/certs,readOnly=true \
@@ -34,9 +35,12 @@ ExecStart=/usr/bin/rkt run \
 {% if kube_network_plugin in ["calico", "weave", "canal"] %}
         --volume etc-cni,kind=host,source=/etc/cni,readOnly=true \
         --volume opt-cni,kind=host,source=/opt/cni,readOnly=true \
+        --volume var-lib-cni,kind=host,source=/var/lib/cni,readOnly=false \
         --mount volume=etc-cni,target=/etc/cni \
         --mount volume=opt-cni,target=/opt/cni \
+        --mount volume=var-lib-cni,target=/var/lib/cni \
 {% endif %}
+        --mount volume=os-release,target=/etc/os-release \
         --mount volume=dns,target=/etc/resolv.conf \
         --mount volume=etc-kubernetes,target={{ kube_config_dir }} \
         --mount volume=etc-ssl-certs,target=/etc/ssl/certs \
@@ -49,7 +53,12 @@ ExecStart=/usr/bin/rkt run \
         --mount volume=var-lib-kubelet,target=/var/lib/kubelet \
         --mount volume=var-log,target=/var/log \
         --stage1-from-dir=stage1-fly.aci \
+{% if kube_hyperkube_image_repo == "docker" %}
+        --insecure-options=image \
+        docker://{{ hyperkube_image_repo }}:{{ hyperkube_image_tag }} \
+{% else %}
         {{ hyperkube_image_repo }}:{{ hyperkube_image_tag }} \
+{% endif %}
         --uuid-file-save=/var/run/kubelet.uuid \
         --debug --exec=/kubelet -- \
                 $KUBE_LOGTOSTDERR \

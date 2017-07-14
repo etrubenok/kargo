@@ -5,9 +5,12 @@ metadata:
   namespace: {{system_namespace}}
   labels:
     k8s-app: kube-apiserver
-    kargo: v2
+    kubespray: v2
 spec:
   hostNetwork: true
+{% if kube_version | version_compare('v1.6', '>=')  %}
+  dnsPolicy: ClusterFirst
+{% endif %}
   containers:
   - name: kube-apiserver
     image: {{ hyperkube_image_repo }}:{{ hyperkube_image_tag }}
@@ -30,7 +33,7 @@ spec:
     - --etcd-keyfile={{ etcd_cert_dir }}/node-{{ inventory_hostname }}-key.pem
     - --insecure-bind-address={{ kube_apiserver_insecure_bind_address }}
     - --apiserver-count={{ kube_apiserver_count }}
-    - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
+    - --admission-control={{ kube_apiserver_admission_control | join(',') }}
     - --service-cluster-ip-range={{ kube_service_addresses }}
     - --service-node-port-range={{ kube_apiserver_node_port_range }}
     - --client-ca-file={{ kube_cert_dir }}/ca.pem
@@ -78,11 +81,18 @@ spec:
 {% if kube_api_anonymous_auth is defined and kube_version | version_compare('v1.5', '>=')  %}
     - --anonymous-auth={{ kube_api_anonymous_auth }}
 {% endif %}
+{% if apiserver_custom_flags is string %}
+    - {{ apiserver_custom_flags }}
+{% else %}
+{%   for flag in apiserver_custom_flags %}
+    - {{ flag }}
+{%   endfor %}
+{% endif %}
     livenessProbe:
       httpGet:
         host: 127.0.0.1
         path: /healthz
-        port: 8080
+        port: {{ kube_apiserver_insecure_port }}
       initialDelaySeconds: 30
       timeoutSeconds: 10
     volumeMounts:
@@ -95,6 +105,11 @@ spec:
     - mountPath: {{ etcd_cert_dir }}
       name: etcd-certs
       readOnly: true
+{% if cloud_provider is defined and cloud_provider == 'aws' and ansible_os_family == 'RedHat' %}
+    - mountPath: /etc/ssl/certs/ca-bundle.crt
+      name: rhel-ca-bundle
+      readOnly: true
+{% endif %}
   volumes:
   - hostPath:
       path: {{ kube_config_dir }}
@@ -105,3 +120,8 @@ spec:
   - hostPath:
       path: {{ etcd_cert_dir }}
     name: etcd-certs
+{% if cloud_provider is defined and cloud_provider == 'aws' and ansible_os_family == 'RedHat' %}
+  - hostPath:
+      path: /etc/ssl/certs/ca-bundle.crt
+    name: rhel-ca-bundle
+{% endif %}

@@ -7,6 +7,9 @@ metadata:
     k8s-app: kube-controller
 spec:
   hostNetwork: true
+{% if kube_version | version_compare('v1.6', '>=') %}
+  dnsPolicy: ClusterFirst
+{% endif %}
   containers:
   - name: kube-controller-manager
     image: {{ hyperkube_image_repo }}:{{ hyperkube_image_tag }}
@@ -42,6 +45,13 @@ spec:
     - --allocate-node-cidrs=true
     - --configure-cloud-routes=true
     - --cluster-cidr={{ kube_pods_subnet }}
+{% endif %}
+{% if controller_mgr_custom_flags is string %}
+    - {{ controller_mgr_custom_flags }}
+{% else %}
+{%   for flag in controller_mgr_custom_flags %}
+    - {{ flag }}
+{%   endfor %}
 {% endif %}
     livenessProbe:
       httpGet:

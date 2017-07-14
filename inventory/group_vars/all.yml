@@ -1,3 +1,12 @@
+# Valid bootstrap options (required): ubuntu, coreos, centos, none
+bootstrap_os: none
+
+#Directory where etcd data stored
+etcd_data_dir: /var/lib/etcd
+
+# Directory where the binaries will be installed
+bin_dir: /usr/local/bin
+
 ## The access_ip variable is used to define how other nodes should access
 ## the node.  This is used in flannel to allow other flannel nodes to see
 ## this node for example.  The access_ip is really useful AWS and Google
@@ -74,6 +83,9 @@ etcd_multiaccess: true
 ## Please note that overlay2 is only supported on newer kernels
 #docker_storage_options: -s overlay2
 
+# Uncomment this if you have more than 3 nameservers, then we'll only use the first 3.
+#docker_dns_servers_strict: false
+
 ## Default packages to install within the cluster, f.e:
 #kpm_packages:
 #  - name: kube-system/grafana
@@ -86,3 +98,6 @@ etcd_multiaccess: true
 
 ## Please specify true if you want to perform a kernel upgrade
 kernel_upgrade: false
+
+## Etcd auto compaction retention for mvcc key value store in hour
+#etcd_compaction_retention: 0
